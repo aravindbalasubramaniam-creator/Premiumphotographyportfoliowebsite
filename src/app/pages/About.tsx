@@ -16,9 +16,8 @@ export function About() {
       {/* Hero Section with Parallax */}
       <div ref={ref} className="relative h-screen overflow-hidden">
         <motion.div
-          className="absolute inset-0 w-full h-[120vh] bg-cover bg-center"
+          className="absolute inset-0 w-full h-[120vh]"
           style={{
-            backgroundImage: `url(${aboutData.image})`,
             y,
           }}
         />

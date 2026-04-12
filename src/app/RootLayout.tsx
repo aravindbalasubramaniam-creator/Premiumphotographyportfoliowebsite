@@ -49,7 +49,7 @@ export function RootLayout() {
 
               <div className="flex gap-8">
                 <a
-                  href="https://instagram.com/arjunmehta"
+                  href="https://instagram.com/aravindbala"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/40 hover:text-white/80 text-sm tracking-wider transition-colors duration-300 cursor-hover"
@@ -57,7 +57,7 @@ export function RootLayout() {
                   Instagram
                 </a>
                 <a
-                  href="mailto:hello@arjunmehta.photo"
+                  href="mailto:hello@aravindbala.photo"
                   className="text-white/40 hover:text-white/80 text-sm tracking-wider transition-colors duration-300 cursor-hover"
                 >
                   Email

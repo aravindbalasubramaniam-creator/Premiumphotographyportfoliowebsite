@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'motion/react';
 import { Send } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface FormData {
   name: string;
@@ -13,6 +14,9 @@ interface FormData {
 
 export function ContactForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -21,18 +25,49 @@ export function ContactForm() {
   } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
-    // Simulate form submission
-    console.log('Form submitted:', data);
-    setIsSubmitted(true);
-    reset();
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 3000);
+    try {
+      // Send data to Supabase contact_inquiries table
+      const { error } = await supabase.from('contact_inquiries').insert([
+        {
+          name: data.name,
+          email: data.email,
+          project_type: data.projectType || null,
+          project_date: data.projectDate || null,
+          message: data.message,
+        },
+      ]);
+
+      if (error) throw error;
+
+      setIsSubmitted(true);
+      reset();
+
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 5000);
+    } catch (err: any) {
+      console.error('Error submitting form:', err.message);
+      setSubmitError('There was a problem sending your message. Please try again or email me directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto">
+      {submitError && (
+        <motion.div
+          className="mb-8 p-6 bg-red-500/10 border border-red-500/20 text-red-200 text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {submitError}
+        </motion.div>
+      )}
+
       {isSubmitted && (
         <motion.div
           className="mb-8 p-6 bg-white/5 border border-white/10 text-white text-center"
@@ -107,13 +142,18 @@ export function ContactForm() {
             <label htmlFor="projectDate" className="block text-white/60 text-xs tracking-[0.2em] uppercase mb-3">
               Preferred Date
             </label>
-            <input
+            <select
               id="projectDate"
-              type="text"
-              placeholder="e.g., April 2024"
               {...register('projectDate')}
-              className="w-full bg-transparent border-b border-white/20 text-white pb-3 focus:border-white/60 outline-none transition-colors duration-300"
-            />
+              className="w-full bg-transparent border-b border-white/20 text-white pb-3 focus:border-white/60 outline-none transition-colors duration-300 cursor-pointer"
+            >
+              <option value="" className="bg-black">Select timeframe...</option>
+              <option value="asap" className="bg-black">As soon as possible</option>
+              <option value="1_month" className="bg-black">Within 1 month</option>
+              <option value="3_months" className="bg-black">Within 3 months</option>
+              <option value="6_months" className="bg-black">Within 6 months</option>
+              <option value="flexible" className="bg-black">Flexible / Date TBD</option>
+            </select>
           </div>
         </div>
 
@@ -134,12 +174,15 @@ export function ContactForm() {
 
         <motion.button
           type="submit"
-          className="flex items-center gap-3 text-white border border-white/40 px-8 py-4 hover:bg-white hover:text-black transition-all duration-500 cursor-hover"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={isSubmitting}
+          className="flex items-center gap-3 text-white border border-white/40 px-8 py-4 hover:bg-white hover:text-black transition-all duration-500 cursor-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+          whileTap={!isSubmitting ? { scale: 0.98 } : {}}
         >
-          <span className="text-sm tracking-[0.2em] uppercase">Send Enquiry</span>
-          <Send size={16} />
+          <span className="text-sm tracking-[0.2em] uppercase">
+            {isSubmitting ? 'Sending...' : 'Send Enquiry'}
+          </span>
+          <Send size={16} className={isSubmitting ? 'animate-pulse' : ''} />
         </motion.button>
       </form>
     </div>

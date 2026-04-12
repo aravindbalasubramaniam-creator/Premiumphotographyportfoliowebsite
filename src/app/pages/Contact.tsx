@@ -42,31 +42,31 @@ export function Contact() {
 
               <div className="space-y-6">
                 <a
-                  href="mailto:hello@arjunmehta.photo"
+                  href="mailto:hello@aravindbala.photo"
                   className="flex items-center gap-4 text-white/70 hover:text-white transition-colors duration-300 cursor-hover group"
                 >
                   <Mail size={20} className="group-hover:scale-110 transition-transform duration-300" />
-                  <span className="tracking-wide">hello@arjunmehta.photo</span>
+                  <span className="tracking-wide">hello@aravindbala.photo</span>
                 </a>
 
                 <a
-                  href="https://instagram.com/arjunmehta"
+                  href="https://instagram.com/aravindbala"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 text-white/70 hover:text-white transition-colors duration-300 cursor-hover group"
                 >
                   <Instagram size={20} className="group-hover:scale-110 transition-transform duration-300" />
-                  <span className="tracking-wide">@arjunmehta</span>
+                  <span className="tracking-wide">@aravindbala</span>
                 </a>
 
                 <a
-                  href="https://arjunmehta.photo"
+                  href="https://aravindbala.photo"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 text-white/70 hover:text-white transition-colors duration-300 cursor-hover group"
                 >
                   <Globe size={20} className="group-hover:scale-110 transition-transform duration-300" />
-                  <span className="tracking-wide">arjunmehta.photo</span>
+                  <span className="tracking-wide">aravindbala.photo</span>
                 </a>
               </div>
             </div>
