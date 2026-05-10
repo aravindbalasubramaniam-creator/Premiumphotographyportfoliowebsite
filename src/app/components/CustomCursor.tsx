@@ -1,21 +1,33 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, useSpring, useMotionValue } from 'motion/react';
 
 export function CustomCursor() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+
+  const springConfig = { stiffness: 300, damping: 30, mass: 0.5 };
+  const x = useSpring(rawX, springConfig);
+  const y = useSpring(rawY, springConfig);
 
   useEffect(() => {
-    // Check if mobile
     setIsMobile(window.innerWidth < 768);
 
-    const updateMousePosition = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
     };
 
-    const handleMouseEnter = (e: MouseEvent) => {
+    const updateMousePosition = (e: MouseEvent) => {
+      rawX.set(e.clientX);
+      rawY.set(e.clientY);
+      if (!isVisible) setIsVisible(true);
+    };
+
+    const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (
         target.tagName === 'A' ||
@@ -25,94 +37,87 @@ export function CustomCursor() {
         target.classList.contains('cursor-hover')
       ) {
         setIsHovering(true);
+      } else {
+        setIsHovering(false);
       }
     };
 
-    const handleMouseLeave = () => {
-      setIsHovering(false);
-    };
-
-    const handleMouseDown = () => {
-      setIsClicking(true);
-    };
-
+    const handleMouseDown = () => setIsClicking(true);
     const handleMouseUp = () => {
-      // Keep red color for a brief moment after release
-      setTimeout(() => {
-        setIsClicking(false);
-      }, 150);
+      setTimeout(() => setIsClicking(false), 150);
     };
 
+    window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', updateMousePosition);
-    document.addEventListener('mouseover', handleMouseEnter);
-    document.addEventListener('mouseout', handleMouseLeave);
+    document.addEventListener('mouseover', handleMouseOver);
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', updateMousePosition);
-      document.removeEventListener('mouseover', handleMouseEnter);
-      document.removeEventListener('mouseout', handleMouseLeave);
+      document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [isVisible, rawX, rawY]);
 
   if (isMobile) return null;
 
+  const ringSize = isHovering ? 48 : 36;
+  const ringColor = isClicking ? '#ef4444' : 'rgba(255,255,255,0.85)';
+  const dotColor = isClicking ? '#ef4444' : 'rgba(255,255,255,0.95)';
+
   return (
-    <>
-      {/* Camera Viewfinder */}
+    <motion.div
+      className="fixed top-0 left-0 pointer-events-none z-[9999] custom-cursor"
+      style={{
+        x,
+        y,
+        translateX: '-50%',
+        translateY: '-50%',
+        opacity: isVisible ? 1 : 0,
+      }}
+    >
+      {/* Outer circle ring */}
       <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9999] custom-cursor"
         style={{
-          x: mousePosition.x - 30,
-          y: mousePosition.y - 30,
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          translateX: '-50%',
+          translateY: '-50%',
+          borderRadius: '50%',
+          border: `1.5px solid ${ringColor}`,
         }}
         animate={{
-          scale: isHovering ? 1.3 : 1,
+          width: ringSize,
+          height: ringSize,
+          borderColor: ringColor,
+          scale: isClicking ? 0.88 : 1,
         }}
-        transition={{
-          type: "spring",
-          stiffness: 150,
-          damping: 15,
-          mass: 0.1,
-        }}
-      >
-        {/* Viewfinder Frame - 60x60px */}
-        <div className="relative w-[60px] h-[60px]">
-          
-          {/* Focus Indicator Ring */}
-          <motion.div
-            className={`absolute inset-2 border rounded-full transition-colors duration-150 ${
-              isClicking ? 'border-red-500/60' : 'border-white/40'
-            }`}
-            animate={{
-              scale: isHovering ? [1, 1.1, 1] : 1,
-              opacity: isHovering ? [0.4, 0.7, 0.4] : 0.4,
-            }}
-            transition={{
-              duration: isHovering ? 0.8 : 0.3,
-              repeat: isHovering ? Infinity : 0,
-            }}
-          />
-        </div>
-      </motion.div>
-      
-      {/* Small center dot for precision */}
-      <motion.div
-        className={`fixed top-0 left-0 w-1.5 h-1.5 rounded-full pointer-events-none z-[9999] custom-cursor transition-colors duration-150 ${
-          isClicking ? 'bg-red-500' : 'bg-white/90'
-        }`}
-        style={{
-          x: mousePosition.x - 3,
-          y: mousePosition.y - 3,
-        }}
-        animate={{
-          opacity: isHovering ? 0 : 1,
-        }}
-        transition={{ duration: 0.2 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       />
-    </>
+
+      {/* Center dot */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          translateX: '-50%',
+          translateY: '-50%',
+          width: 5,
+          height: 5,
+          borderRadius: '50%',
+          backgroundColor: dotColor,
+        }}
+        animate={{
+          backgroundColor: dotColor,
+          scale: isClicking ? 1.8 : 1,
+        }}
+        transition={{ duration: 0.15 }}
+      />
+    </motion.div>
   );
 }
